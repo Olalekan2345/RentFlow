@@ -35,12 +35,10 @@ services:
         value: "true"
       - key: TIME_ACCELERATION_SECONDS
         value: "1"
-      # Reach the landlord service internally (config prepends http:// if missing).
+      # The agent reaches the landlord over its PUBLIC URL. If you renamed the
+      # landlord service, update this to match its onrender.com URL.
       - key: NEXT_PUBLIC_LANDLORD_URL
-        fromService:
-          name: rentflow-landlord
-          type: web
-          property: hostport
+        value: https://rentflow-landlord.onrender.com
 
   - type: web
     name: rentflow-dashboard
@@ -49,8 +47,8 @@ services:
     buildCommand: npm ci && npm run build:shared && npm run build -w packages/dashboard
     startCommand: npm run start -w packages/dashboard
     envVars:
-      # Set this to the agent's public URL (https://rentflow-agent.onrender.com)
-      # after the first deploy, then trigger a manual redeploy of the dashboard so
-      # the value is baked into the client bundle.
+      # The browser polls the agent at this PUBLIC URL. It is baked into the
+      # client bundle at build time — if you change it, redeploy the dashboard
+      # with "Clear build cache & deploy". Update if you renamed the agent service.
       - key: NEXT_PUBLIC_AGENT_URL
-        sync: false
+        value: https://rentflow-agent.onrender.com

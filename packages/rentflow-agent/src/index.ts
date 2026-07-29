@@ -13,32 +13,34 @@ async function main() {
     console.log(`    landlord       ${config.landlordUrl}\n`);
   });
 
-  // The landlord may still be booting — locally (npm run demo starts both
-  // together) or in the cloud, where a free-tier landlord can cold-start for
-  // up to a minute. Retry startup for ~90s before giving up.
-  const maxStartupAttempts = 45;
-  let started = false;
-  for (let attempt = 1; attempt <= maxStartupAttempts && !started; attempt++) {
-    try {
-      await startup();
-      started = true;
-    } catch (err) {
-      if (attempt === maxStartupAttempts) {
-        console.error(`\n❌ startup failed: ${(err as Error).message}`);
-        console.error(`   Is the landlord-server reachable at ${config.landlordUrl}? Are your keys funded?\n`);
-        return;
-      }
-      if (attempt === 1) {
-        console.log(`   Landlord not ready yet — retrying (it may be cold-starting)...`);
-      }
-      await new Promise((r) => setTimeout(r, 2000));
-    }
-  }
+  const autostart = process.env.RENTFLOW_AUTOSTART !== "false";
 
-  // Auto-start the accelerated loop unless told to wait for the dashboard button.
-  if (process.env.RENTFLOW_AUTOSTART !== "false") {
+  if (autostart) {
+    // Best-effort initial startup, but never block on it: the loop is
+    // self-healing — each tick re-fetches the lease, so a slow/cold-starting
+    // landlord (common on free cloud tiers) is tolerated and recovered from.
+    startup().catch((err) =>
+      console.warn(`   initial startup deferred (loop will retry): ${(err as Error).message}`),
+    );
     void runLoop();
   } else {
+    // Waiting for the dashboard "Simulate month" button — retry startup so the
+    // dashboard shows lease + balance even before the first payment.
+    const maxStartupAttempts = 45;
+    for (let attempt = 1; attempt <= maxStartupAttempts; attempt++) {
+      try {
+        await startup();
+        break;
+      } catch (err) {
+        if (attempt === maxStartupAttempts) {
+          console.error(`\n❌ startup failed: ${(err as Error).message}`);
+          console.error(`   Is the landlord reachable at ${config.landlordUrl}? Are your keys funded?\n`);
+          return;
+        }
+        if (attempt === 1) console.log(`   Landlord not ready yet — retrying...`);
+        await new Promise((r) => setTimeout(r, 2000));
+      }
+    }
     console.log("   Waiting for POST /simulate (RENTFLOW_AUTOSTART=false).\n");
   }
 }
