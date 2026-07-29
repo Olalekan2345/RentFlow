@@ -1,0 +1,28 @@
+# Fly.io config for the RentFlow landlord service.
+# App names are GLOBAL — if "rentflow-landlord" is taken, change `app` here and
+# update NEXT_PUBLIC_LANDLORD_URL in fly.agent.toml to match your chosen name.
+#
+#   fly apps create rentflow-landlord
+#   fly deploy -c fly.landlord.toml
+#   fly secrets set -a rentflow-landlord HEDERA_LANDLORD_ID=0.0.xxxx HEDERA_LANDLORD_KEY=302e...
+app = "rentflow-landlord"
+primary_region = "iad"
+
+[build]
+  dockerfile = "packages/landlord-server/Dockerfile"
+
+[env]
+  PORT = "4021"
+  DAILY_RATE_HBAR = "1"
+  LEASE_TERM_DAYS = "30"
+
+[http_service]
+  internal_port = 4021
+  force_https = true
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 1
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"

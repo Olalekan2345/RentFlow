@@ -17,7 +17,45 @@ CORS so the dashboard can poll it cross-origin.
 
 ---
 
-## Option A — Docker Compose (recommended, always-on)
+## Recommended: Vercel (dashboard) + Fly.io (agent + landlord)
+
+Vercel is serverless, so it can host the **dashboard** but **not** the agent (a
+long-running loop) or the landlord (SQLite on disk). Put those on Fly.io.
+
+### Step 1 — agent + landlord on Fly.io
+Install [flyctl](https://fly.io/docs/flyctl/install/), then `fly auth login`.
+
+```bash
+# Landlord first (app names are global — pick unique ones if these are taken).
+fly apps create rentflow-landlord
+fly deploy -c fly.landlord.toml
+fly secrets set -a rentflow-landlord \
+  HEDERA_LANDLORD_ID=0.0.9828659 HEDERA_LANDLORD_KEY=302e0201...
+
+# Note the landlord URL (https://rentflow-landlord.fly.dev). Put it in
+# fly.agent.toml -> NEXT_PUBLIC_LANDLORD_URL if you changed the app name.
+fly apps create rentflow-agent
+fly deploy -c fly.agent.toml
+fly secrets set -a rentflow-agent \
+  HEDERA_OPERATOR_ID=0.0.9821653 HEDERA_OPERATOR_KEY=0x25e96b...
+```
+
+The agent auto-starts and settles rent live at `https://rentflow-agent.fly.dev`.
+(SQLite state is ephemeral across redeploys — the agent simply re-settles; attach
+a Fly volume only if you want it to persist.)
+
+### Step 2 — dashboard on Vercel
+1. vercel.com → Add New Project → import the repo.
+2. **Root Directory = `packages/dashboard`** (the dashboard has no dependency on
+   the other packages, so it builds standalone).
+3. Env var `NEXT_PUBLIC_AGENT_URL = https://rentflow-agent.fly.dev`.
+4. Deploy. Your public dashboard now polls the live agent.
+
+> `NEXT_PUBLIC_*` is baked in at build time — if you change the agent URL, redeploy.
+
+---
+
+## Option A — Docker Compose (all-in-one, any VPS)
 
 Best for a VPS (or your own machine) where the agent should run 24/7.
 

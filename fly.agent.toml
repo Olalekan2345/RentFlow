@@ -1,0 +1,29 @@
+# Fly.io config for the RentFlow autonomous agent.
+# Deploy the landlord FIRST, then set NEXT_PUBLIC_LANDLORD_URL below to its URL.
+#
+#   fly apps create rentflow-agent
+#   fly deploy -c fly.agent.toml
+#   fly secrets set -a rentflow-agent HEDERA_OPERATOR_ID=0.0.xxxx HEDERA_OPERATOR_KEY=0x...
+app = "rentflow-agent"
+primary_region = "iad"
+
+[build]
+  dockerfile = "packages/rentflow-agent/Dockerfile"
+
+[env]
+  PORT = "4022"
+  RENTFLOW_AUTOSTART = "true"
+  TIME_ACCELERATION_SECONDS = "1"
+  # Point at your deployed landlord app's public URL:
+  NEXT_PUBLIC_LANDLORD_URL = "https://rentflow-landlord.fly.dev"
+
+[http_service]
+  internal_port = 4022
+  force_https = true
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 1
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"
