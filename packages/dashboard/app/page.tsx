@@ -43,7 +43,7 @@ export default function Dashboard() {
   const simulate = async () => {
     setStarting(true);
     await fetch(`${AGENT_URL}/simulate`, { method: "POST" }).catch(() => {});
-    setTimeout(() => setStarting(false), 1500);
+    setStarting(false);
     poll();
   };
 
@@ -138,7 +138,7 @@ export default function Dashboard() {
           </p>
           <div style={{ display: "flex", gap: 10, marginTop: 10 }}>
             <button className="btn" onClick={simulate} disabled={starting || status?.state === "RUNNING"}>
-              {status?.state === "RUNNING" ? "Running…" : starting ? "Starting…" : status && status.daysPaid > 0 && status.state !== "COMPLETE" ? "▶ Resume" : "▶ Simulate month"}
+              {status?.state === "RUNNING" ? "Running…" : starting ? "Starting…" : "▶ Simulate month"}
             </button>
             <button className="btn btn-stop" onClick={stop} disabled={status?.state !== "RUNNING"}>
               ■ Stop

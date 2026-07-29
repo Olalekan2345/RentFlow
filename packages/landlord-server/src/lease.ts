@@ -34,6 +34,12 @@ export function ensureLease(startDate = todayUtc()): LeaseRow {
   return getLease(config.leaseId)!;
 }
 
+/** Wipe all receipts/payment-ids and re-seed the lease starting today. */
+export function resetLease(): LeaseRow {
+  db.exec("DELETE FROM receipts; DELETE FROM payment_ids; DELETE FROM leases;");
+  return ensureLease();
+}
+
 export function getLease(leaseId: string): LeaseRow | undefined {
   return db.prepare(`SELECT * FROM leases WHERE lease_id = ?`).get(leaseId) as
     | LeaseRow

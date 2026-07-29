@@ -92,6 +92,11 @@ export function deadLetter(leaseId: string, date: string, reason: string): void 
   ).run(leaseId, date, reason, Date.now());
 }
 
+/** Wipe the agent's own ledger + dead-letter log for a fresh run. */
+export function resetLedger(): void {
+  db.exec("DELETE FROM ledger; DELETE FROM dead_letter;");
+}
+
 export function deadLettersFor(leaseId: string): { date: string; reason: string }[] {
   return db
     .prepare(`SELECT date, reason FROM dead_letter WHERE lease_id = ? ORDER BY failed_at ASC`)

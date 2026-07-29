@@ -3,7 +3,7 @@ import { state } from "./state.js";
 import { recentEvents } from "./eventlog.js";
 import { ledgerFor, deadLettersFor } from "./db.js";
 import { config } from "./config.js";
-import { runLoop, isRunning, stop } from "./agent.js";
+import { runLoop, isRunning, stop, resetRun } from "./agent.js";
 
 export function createAgentServer() {
   const app = express();
@@ -41,11 +41,13 @@ export function createAgentServer() {
     res.json({ leaseId: config.leaseId, entries: deadLettersFor(config.leaseId) });
   });
 
-  // The dashboard "Simulate month" button hits this to kick the accelerated loop.
-  app.post("/simulate", (_req, res) => {
+  // The dashboard "Simulate month" button hits this. Every click starts a fresh
+  // run from day 1: reset both sides, then kick off the accelerated loop.
+  app.post("/simulate", async (_req, res) => {
     if (isRunning()) return res.json({ started: false, message: "already running" });
+    await resetRun();
     void runLoop();
-    res.json({ started: true, message: "accelerated rent loop started" });
+    res.json({ started: true, message: "fresh run started from day 1" });
   });
 
   // The dashboard "Stop" button hits this to pause the loop after the current day.

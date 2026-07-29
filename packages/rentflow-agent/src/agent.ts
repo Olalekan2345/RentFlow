@@ -8,7 +8,7 @@ import {
 } from "./wallet.js";
 import { fetchLease, requestTerms, validateTerms, redeem } from "./x402client.js";
 import { waitForMirror, sleep } from "./mirror.js";
-import { isDayPaid, recordPayment, deadLetter } from "./db.js";
+import { isDayPaid, recordPayment, deadLetter, resetLedger } from "./db.js";
 import { runwayDays, isBelowRent, isLowRunway, fireWebhook } from "./guardian.js";
 import { generateWeeklyReport } from "./report.js";
 import { hashscanTxUrl } from "@rentflow/shared";
@@ -200,6 +200,23 @@ export async function startup(): Promise<void> {
     leaseId: config.leaseId,
     message: `lease ${lease.leaseId}: ${lease.dailyRate} ${lease.asset}/day × ${lease.termDays} days. Balance ${balance} covers ${runwayDays(balance, lease.dailyRate)} days.`,
   });
+}
+
+/**
+ * Wipe both sides back to day 0 for a fresh run: reset the landlord's lease +
+ * receipts, clear the agent's own ledger, and repopulate state. Called by the
+ * dashboard "Simulate month" button so every click starts cleanly from day 1.
+ */
+export async function resetRun(): Promise<void> {
+  try {
+    await fetch(`${config.landlordUrl}/reset`, { method: "POST" });
+  } catch (err) {
+    logEvent({ type: "info", message: `landlord reset failed: ${(err as Error).message}` });
+  }
+  resetLedger();
+  patchState({ simulatedDay: 0, daysPaid: 0, state: "IDLE", lastAlert: null });
+  logEvent({ type: "info", message: "reset — starting a fresh lease from day 1" });
+  await startup();
 }
 
 /** Run the accelerated rent loop until the lease completes or stop() is called. */

@@ -15,6 +15,7 @@ import {
   nextDueDate,
   daysPaid,
   receiptsFor,
+  resetLease,
 } from "./lease.js";
 import { signReceipt, landlordPublicKeyRaw } from "./signing.js";
 import {
@@ -80,6 +81,13 @@ export function createApp(opts: AppOptions = {}) {
 
   app.get("/landlord/pubkey", (_req, res) => {
     res.json({ account: config.landlordId, publicKey: landlordPublicKeyRaw });
+  });
+
+  // Clear all lease state and re-seed a fresh lease starting today. Used by the
+  // agent when the dashboard "Simulate month" button asks for a fresh run.
+  app.post("/reset", (_req, res) => {
+    const lease = resetLease();
+    res.json({ ok: true, lease: leaseToTerms(lease) });
   });
 
   // ── The x402 endpoint: one day of verified occupancy. ────────────────────
