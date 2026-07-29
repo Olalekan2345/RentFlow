@@ -211,6 +211,7 @@ export async function runLoop(): Promise<void> {
   const intervalMs = Math.max(1, config.timeAccelerationSeconds) * 1000;
 
   while (!stopFlag) {
+    const startedAt = Date.now();
     let keepGoing = true;
     try {
       keepGoing = await tick();
@@ -218,7 +219,10 @@ export async function runLoop(): Promise<void> {
       logEvent({ type: "info", message: `tick error: ${(err as Error).message}` });
     }
     if (!keepGoing) break;
-    await sleep(intervalMs);
+    // Fixed cadence: each day starts intervalMs after the previous one, so the
+    // spacing is steady regardless of how long the on-chain settlement took.
+    const elapsed = Date.now() - startedAt;
+    await sleep(Math.max(0, intervalMs - elapsed));
   }
   running = false;
 }

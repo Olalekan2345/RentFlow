@@ -34,7 +34,7 @@ services:
       - key: RENTFLOW_AUTOSTART
         value: "true"
       - key: TIME_ACCELERATION_SECONDS
-        value: "1"
+        value: "15"
       # The agent reaches the landlord over its PUBLIC URL. If you renamed the
       # landlord service, update this to match its onrender.com URL.
       - key: NEXT_PUBLIC_LANDLORD_URL
