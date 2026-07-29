@@ -62,6 +62,7 @@ export default function Dashboard() {
 
   return (
     <div className="wrap">
+      <div className="bg-mesh" aria-hidden="true" />
       <div className="topbar">
         <div className="brand">
           <div className="logo">🏠</div>
@@ -72,6 +73,7 @@ export default function Dashboard() {
         </div>
         <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
           <span className={`pill ${online ? "live" : "alert"}`}>
+            <i className="dot" />
             {online ? "agent online" : "agent offline"}
           </span>
           {status && (
