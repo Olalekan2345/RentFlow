@@ -3,7 +3,7 @@ import { state } from "./state.js";
 import { recentEvents } from "./eventlog.js";
 import { ledgerFor, deadLettersFor } from "./db.js";
 import { config } from "./config.js";
-import { runLoop, isRunning } from "./agent.js";
+import { runLoop, isRunning, stop } from "./agent.js";
 
 export function createAgentServer() {
   const app = express();
@@ -46,6 +46,13 @@ export function createAgentServer() {
     if (isRunning()) return res.json({ started: false, message: "already running" });
     void runLoop();
     res.json({ started: true, message: "accelerated rent loop started" });
+  });
+
+  // The dashboard "Stop" button hits this to pause the loop after the current day.
+  app.post("/stop", (_req, res) => {
+    if (!isRunning()) return res.json({ stopped: false, message: "not running" });
+    stop();
+    res.json({ stopped: true, message: "stopping after the current day" });
   });
 
   return app;

@@ -225,6 +225,11 @@ export async function runLoop(): Promise<void> {
     await sleep(Math.max(0, intervalMs - elapsed));
   }
   running = false;
+  // Paused by the user (Stop) — reflect it, unless the lease already completed.
+  if (stopFlag && state.state !== "COMPLETE") {
+    patchState({ state: "IDLE" });
+    logEvent({ type: "info", leaseId: config.leaseId, message: "paused by user — press Simulate to resume" });
+  }
 }
 
 export function stop(): void {

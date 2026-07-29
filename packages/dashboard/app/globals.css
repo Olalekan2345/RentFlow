@@ -89,6 +89,15 @@ a:hover { text-decoration: underline; }
 .btn:hover { transform: translateY(-1px); }
 .btn:disabled { opacity: 0.55; cursor: default; transform: none; }
 
+.btn-stop {
+  background: transparent;
+  border: 1px solid rgba(251, 113, 133, 0.5);
+  color: var(--red);
+  box-shadow: none;
+}
+.btn-stop:hover { background: rgba(251, 113, 133, 0.12); }
+.btn-stop:disabled { opacity: 0.4; }
+
 .alert-banner {
   margin: 18px 0; padding: 14px 18px; border-radius: 14px;
   background: rgba(251, 113, 133, 0.12); border: 1px solid rgba(251,113,133,0.4);

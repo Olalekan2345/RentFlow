@@ -47,6 +47,11 @@ export default function Dashboard() {
     poll();
   };
 
+  const stop = async () => {
+    await fetch(`${AGENT_URL}/stop`, { method: "POST" }).catch(() => {});
+    poll();
+  };
+
   const online = status !== null;
   const runwayPct = status
     ? Math.max(4, Math.min(100, (status.runwayDays / Math.max(status.termDays, 1)) * 100))
@@ -129,9 +134,14 @@ export default function Dashboard() {
           <p style={{ color: "var(--muted)", fontSize: 14, lineHeight: 1.5 }}>
             Kick the agent into accelerated time — a full month of daily rent settles on-chain in minutes.
           </p>
-          <button className="btn" onClick={simulate} disabled={starting || status?.state === "RUNNING"} style={{ marginTop: 10 }}>
-            {status?.state === "RUNNING" ? "Running…" : starting ? "Starting…" : "▶ Simulate month"}
-          </button>
+          <div style={{ display: "flex", gap: 10, marginTop: 10 }}>
+            <button className="btn" onClick={simulate} disabled={starting || status?.state === "RUNNING"}>
+              {status?.state === "RUNNING" ? "Running…" : starting ? "Starting…" : status && status.daysPaid > 0 && status.state !== "COMPLETE" ? "▶ Resume" : "▶ Simulate month"}
+            </button>
+            <button className="btn btn-stop" onClick={stop} disabled={status?.state !== "RUNNING"}>
+              ■ Stop
+            </button>
+          </div>
           <div style={{ marginTop: 18 }}>
             <div className="kv"><span className="k">Total settled</span><span className="v">{payments.length} days</span></div>
             <div className="kv"><span className="k">Status</span><span className="v">{status?.state ?? "—"}</span></div>
