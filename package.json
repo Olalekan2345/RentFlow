@@ -1,0 +1,31 @@
+{
+  "name": "rentflow",
+  "version": "1.0.0",
+  "private": true,
+  "description": "RentFlow — an autonomous rent-settlement agent that pays daily rent micropayments over the x402 standard, settling on Hedera testnet.",
+  "license": "MIT",
+  "workspaces": [
+    "shared",
+    "packages/landlord-server",
+    "packages/rentflow-agent",
+    "packages/dashboard"
+  ],
+  "scripts": {
+    "build:shared": "npm run build -w shared",
+    "pretest": "npm run build:shared",
+    "test": "npm run test -w shared -w packages/landlord-server -w packages/rentflow-agent --if-present",
+    "dev:landlord": "npm run build:shared && npm run dev -w packages/landlord-server",
+    "dev:agent": "npm run build:shared && npm run dev -w packages/rentflow-agent",
+    "dev:dashboard": "npm run dev -w packages/dashboard",
+    "seed": "npm run build:shared && npm run seed -w packages/landlord-server",
+    "demo": "node scripts/demo.mjs",
+    "pretypecheck": "npm run build:shared",
+    "typecheck": "npm run typecheck -w shared -w packages/landlord-server -w packages/rentflow-agent --if-present"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}

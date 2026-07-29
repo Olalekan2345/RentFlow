@@ -1,0 +1,34 @@
+# dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# builds
+dist/
+build/
+*.tsbuildinfo
+.next/
+out/
+
+# env — never commit secrets
+.env
+.env.local
+.env.*.local
+
+# databases & logs (runtime state)
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+*.sqlite
+data/
+logs/
+*.log
+events.jsonl
+dead-letter.jsonl
+
+# os / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
