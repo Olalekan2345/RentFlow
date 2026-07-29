@@ -13,20 +13,25 @@ async function main() {
     console.log(`    landlord       ${config.landlordUrl}\n`);
   });
 
-  // The landlord may still be booting (npm run demo starts both together).
-  // Retry startup with backoff before giving up.
+  // The landlord may still be booting — locally (npm run demo starts both
+  // together) or in the cloud, where a free-tier landlord can cold-start for
+  // up to a minute. Retry startup for ~90s before giving up.
+  const maxStartupAttempts = 45;
   let started = false;
-  for (let attempt = 1; attempt <= 10 && !started; attempt++) {
+  for (let attempt = 1; attempt <= maxStartupAttempts && !started; attempt++) {
     try {
       await startup();
       started = true;
     } catch (err) {
-      if (attempt === 10) {
+      if (attempt === maxStartupAttempts) {
         console.error(`\n❌ startup failed: ${(err as Error).message}`);
-        console.error(`   Is the landlord-server running at ${config.landlordUrl}? Are your .env keys funded?\n`);
+        console.error(`   Is the landlord-server reachable at ${config.landlordUrl}? Are your keys funded?\n`);
         return;
       }
-      await new Promise((r) => setTimeout(r, 1500));
+      if (attempt === 1) {
+        console.log(`   Landlord not ready yet — retrying (it may be cold-starting)...`);
+      }
+      await new Promise((r) => setTimeout(r, 2000));
     }
   }
 

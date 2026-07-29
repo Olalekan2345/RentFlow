@@ -17,7 +17,33 @@ CORS so the dashboard can poll it cross-origin.
 
 ---
 
-## Recommended: Vercel (dashboard) + Fly.io (agent + landlord)
+## Easiest: all three on Render (no CLI, no card)
+
+Render deploys the whole stack from [render.yaml](render.yaml) through the web UI.
+
+1. Push this repo to GitHub (done).
+2. [render.com](https://render.com) → **New → Blueprint** → connect the repo. Render
+   reads `render.yaml` and creates `rentflow-landlord`, `rentflow-agent`, and
+   `rentflow-dashboard`.
+3. Fill the secret env vars (marked `sync: false`):
+   - **landlord:** `HEDERA_LANDLORD_ID`, `HEDERA_LANDLORD_KEY`
+   - **agent:** `HEDERA_OPERATOR_ID`, `HEDERA_OPERATOR_KEY`
+4. After the first deploy, copy the **agent's** URL
+   (`https://rentflow-agent.onrender.com`), set it as `NEXT_PUBLIC_AGENT_URL` on
+   the **dashboard** service, and click **Manual Deploy → Clear build cache &
+   deploy** (the value is baked into the client bundle at build time).
+5. Open the dashboard URL.
+
+⚠️ **Free-tier behavior:** services sleep after ~15 min idle and cold-start
+(~30–60s) on the next visit. The agent is built to survive this — it waits for
+the landlord to wake, then resumes settling. Great as a bonus demo link; for a
+genuinely always-on agent, upgrade the **agent** service to the $7/mo Starter
+plan (no sleep). The agent's `RENTFLOW_AUTOSTART=true` (set in `render.yaml`)
+means it starts settling automatically each time it wakes.
+
+---
+
+## Alternative: Vercel (dashboard) + Fly.io (agent + landlord)
 
 Vercel is serverless, so it can host the **dashboard** but **not** the agent (a
 long-running loop) or the landlord (SQLite on disk). Put those on Fly.io.
