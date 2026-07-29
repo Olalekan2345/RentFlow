@@ -56,14 +56,14 @@ Install [flyctl](https://fly.io/docs/flyctl/install/), then `fly auth login`.
 fly apps create rentflow-landlord
 fly deploy -c fly.landlord.toml
 fly secrets set -a rentflow-landlord \
-  HEDERA_LANDLORD_ID=0.0.9828659 HEDERA_LANDLORD_KEY=302e0201...
+  HEDERA_LANDLORD_ID=0.0.xxxxxxx HEDERA_LANDLORD_KEY=<landlord-private-key>
 
 # Note the landlord URL (https://rentflow-landlord.fly.dev). Put it in
 # fly.agent.toml -> NEXT_PUBLIC_LANDLORD_URL if you changed the app name.
 fly apps create rentflow-agent
 fly deploy -c fly.agent.toml
 fly secrets set -a rentflow-agent \
-  HEDERA_OPERATOR_ID=0.0.9821653 HEDERA_OPERATOR_KEY=0x25e96b...
+  HEDERA_OPERATOR_ID=0.0.xxxxxxx HEDERA_OPERATOR_KEY=<operator-private-key>
 ```
 
 The agent auto-starts and settles rent live at `https://rentflow-agent.fly.dev`.

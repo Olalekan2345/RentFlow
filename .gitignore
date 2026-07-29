@@ -32,3 +32,6 @@ dead-letter.jsonl
 Thumbs.db
 .vscode/
 .idea/
+
+# local-only notes (not part of the published project)
+VIDEO_SCRIPT.md
