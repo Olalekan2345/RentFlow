@@ -34,7 +34,8 @@ export const config = {
   dailyRate: useUsdc ? opt("DAILY_RATE_USDC", "5") : opt("DAILY_RATE_HBAR", "1"),
   termDays: Number(opt("LEASE_TERM_DAYS", "30")),
   gracePeriodDays: Number(opt("GRACE_PERIOD_DAYS", "3")),
-  port: Number(opt("LANDLORD_PORT", "4021")),
+  // Cloud hosts (Render/Railway/Fly) inject $PORT; fall back to LANDLORD_PORT locally.
+  port: Number(opt("PORT", "") || opt("LANDLORD_PORT", "4021")),
   /** How long 402 terms remain valid, in ms. */
   termsTtlMs: 5 * 60 * 1000,
 } as const;

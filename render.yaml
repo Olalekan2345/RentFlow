@@ -1,0 +1,56 @@
+# Render Blueprint — deploy all three services from the repo.
+# In Render: New → Blueprint → connect this repo. Fill the `sync: false` secrets
+# in the dashboard afterwards. NOTE: Render free web services sleep after ~15 min
+# of inactivity, which pauses the autonomous agent. For a truly always-on agent,
+# use the Docker/VPS path in DEPLOY.md or a paid instance.
+services:
+  - type: web
+    name: rentflow-landlord
+    runtime: node
+    plan: free
+    buildCommand: npm ci && npm run build:shared
+    startCommand: npm run start -w packages/landlord-server
+    envVars:
+      - key: HEDERA_LANDLORD_ID
+        sync: false
+      - key: HEDERA_LANDLORD_KEY
+        sync: false
+      - key: DAILY_RATE_HBAR
+        value: "1"
+      - key: LEASE_TERM_DAYS
+        value: "30"
+
+  - type: web
+    name: rentflow-agent
+    runtime: node
+    plan: free
+    buildCommand: npm ci && npm run build:shared
+    startCommand: npm run start -w packages/rentflow-agent
+    envVars:
+      - key: HEDERA_OPERATOR_ID
+        sync: false
+      - key: HEDERA_OPERATOR_KEY
+        sync: false
+      - key: RENTFLOW_AUTOSTART
+        value: "true"
+      - key: TIME_ACCELERATION_SECONDS
+        value: "1"
+      # Reach the landlord service internally (config prepends http:// if missing).
+      - key: NEXT_PUBLIC_LANDLORD_URL
+        fromService:
+          name: rentflow-landlord
+          type: web
+          property: hostport
+
+  - type: web
+    name: rentflow-dashboard
+    runtime: node
+    plan: free
+    buildCommand: npm ci && npm run build:shared && npm run build -w packages/dashboard
+    startCommand: npm run start -w packages/dashboard
+    envVars:
+      # Set this to the agent's public URL (https://rentflow-agent.onrender.com)
+      # after the first deploy, then trigger a manual redeploy of the dashboard so
+      # the value is baked into the client bundle.
+      - key: NEXT_PUBLIC_AGENT_URL
+        sync: false

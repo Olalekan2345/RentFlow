@@ -1,0 +1,45 @@
+# RentFlow — full stack in one command:  docker compose up --build
+#
+# Requires a .env at the repo root with your Hedera testnet keys (see .env.example).
+# On a VPS, set PUBLIC_HOST to the machine's public IP/domain so the browser can
+# reach the agent, e.g.  PUBLIC_HOST=http://203.0.113.10:4022 docker compose up --build
+services:
+  landlord:
+    build:
+      context: .
+      dockerfile: packages/landlord-server/Dockerfile
+    env_file: .env
+    environment:
+      - LANDLORD_PORT=4021
+    ports:
+      - "4021:4021"
+    restart: unless-stopped
+
+  agent:
+    build:
+      context: .
+      dockerfile: packages/rentflow-agent/Dockerfile
+    env_file: .env
+    environment:
+      - AGENT_PORT=4022
+      # Reach the landlord over the compose network, not localhost.
+      - NEXT_PUBLIC_LANDLORD_URL=http://landlord:4021
+      - RENTFLOW_AUTOSTART=true
+    ports:
+      - "4022:4022"
+    depends_on:
+      - landlord
+    restart: unless-stopped
+
+  dashboard:
+    build:
+      context: .
+      dockerfile: packages/dashboard/Dockerfile
+      args:
+        # The browser calls the agent directly — must be a URL the browser can reach.
+        NEXT_PUBLIC_AGENT_URL: ${PUBLIC_AGENT_URL:-http://localhost:4022}
+    ports:
+      - "3000:3000"
+    depends_on:
+      - agent
+    restart: unless-stopped
